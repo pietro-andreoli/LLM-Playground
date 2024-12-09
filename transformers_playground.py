@@ -160,6 +160,8 @@ messages = [
 To use these functions respond with:
 <functioncall> {{"name":"function_name","arguments":{{"arg_1":"value_1","arg_2":"value_2",...}}}} </functioncall>
 
+Ensure the types of the arguments match the function's requirements.
+
 Edge cases you must handle:
 If there are no functions that match the user request, you will respond politely that you cannot help.""",
     },
@@ -179,7 +181,7 @@ If there are no functions that match the user request, you will respond politely
 ]
 
 # Run the message processing
-print("--- START OF CONVERSATION ---")
 result = process_messages(messages, model, tokenizer)
+print("--- START OF CONVERSATION ---")
 print(result)
 print("--- END OF CONVERSATION ---")
