@@ -1,6 +1,6 @@
 
 from langchain_ollama import ChatOllama
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, BaseMessage
 from langchain_core.tools import tool
 import os
 import json
@@ -83,34 +83,63 @@ conversation = [
             get_user_age takes a name and returns the age of that user. 
             If you need to call a tool, you will receive a tool call message with the tool name and arguments. 
             You should respond with the result of the tool call. Phrase the response as if you were an assistant in the office pulling up this information from the database.
-            Never mention that you are calling a tool, just go right into natural language response.""",
+            Never mention that you are calling a tool, just go right into natural language response.
+            - Only call a tool when the user explicitly requests specific user information
+            - Do not call tools for general conversation or responses like 'thanks'
+            - If no specific user information is requested, respond naturally without using tools
+            - Be clear and direct in your communication""",
     ),
     ("human", "Could you check how old Peter Andreoli is? Also what is his address?"),
 ]
-response = llm.invoke(conversation)
-print(response.pretty_print())
 
-# Handle tool calls if any
-if response.tool_calls:
-    # Process each tool call
-    for tool_call in response.tool_calls:
-        # Execute the tool
-        tool_result = None
-        if tool_call['name'] == 'get_user_info':
-            tool_result = get_user_info.invoke(tool_call)
-        elif tool_call['name'] == 'get_user_age':
-            tool_result = get_user_age.invoke(tool_call)
-        
-        # Add the tool result to the conversation
-        if tool_result is not None:
-            conversation.append(
-                ToolMessage(
-                    content=str(tool_result), 
-                    tool_call_id=tool_call['id']
+response = llm.invoke(conversation)
+
+def handle_tool_calls(llm_response: BaseMessage, conversation_list: list[tuple[str, str]]):
+    # Handle tool calls if any
+    if llm_response.tool_calls:
+        # Process each tool call
+        for tool_call in llm_response.tool_calls:
+            # Execute the tool
+            tool_result = None
+            if tool_call['name'] == 'get_user_info':
+                tool_result = get_user_info.invoke(tool_call)
+            elif tool_call['name'] == 'get_user_age':
+                tool_result = get_user_age.invoke(tool_call)
+            
+            # Add the tool result to the conversation
+            if tool_result is not None:
+                conversation_list.append(
+                    ToolMessage(
+                        content=str(tool_result), 
+                        tool_call_id=tool_call['id']
+                    )
                 )
-            )
     
-    # Get the final response incorporating the tool results
-    final_response = llm.invoke(conversation)
+        # Get the final response incorporating the tool results
+        final_response = llm.invoke(conversation_list)
+        print("\nFinal Response:")
+        print(final_response.pretty_print())
+        return final_response
+    
+    # If no tool calls, return the original response
     print("\nFinal Response:")
-    print(final_response.pretty_print())
+    print(llm_response.pretty_print())
+    return llm_response
+
+handle_tool_calls(response, conversation)
+
+MAX_CONVERSATION_HISTORY = 1
+
+user_input = input("Enter a message: ")
+while user_input != "exit":
+    conversation.append(("human", user_input))
+
+    # Trim conversation history
+    conversation = [conversation[0]] + conversation[-MAX_CONVERSATION_HISTORY:]
+    response = llm.invoke(conversation)
+    if response.tool_calls:
+        handle_tool_calls(response, conversation)
+    else:
+        print("\nFinal Response:")
+        print(response.pretty_print())
+    user_input = input("Enter a message: ")
