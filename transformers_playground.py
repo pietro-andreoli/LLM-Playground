@@ -73,7 +73,7 @@ def process_messages(messages, model, tokenizer):
         max_new_tokens=256,
         eos_token_id=terminators,
         do_sample=True,
-        temperature=0.6,
+        temperature=0.1,
         top_p=0.9,
     )
 
@@ -174,7 +174,7 @@ If there are no functions that match the user request, you will respond politely
         "content": """<functioncall>{"name":"do_addition","arguments":{"param1":1, "param2":2}}</functioncall>""",
     },
     {
-        "role": "user",
+        "role": "assistant",
         "content": """<function_response> {"answer":"haha its 3"} </function_response>""",
     },
     {
