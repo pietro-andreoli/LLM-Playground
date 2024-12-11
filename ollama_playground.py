@@ -1,5 +1,5 @@
-from ollama import chat, Tool
-from ollama import ChatResponse
+from ollama_playground import chat, Tool
+from ollama_playground import ChatResponse
 
 # response: ChatResponse = chat(model='llama3.2:3b', messages=[
 #   {
