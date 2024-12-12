@@ -87,7 +87,8 @@ conversation = [
             - Only call a tool when the user explicitly requests specific user information
             - Do not call tools for general conversation or responses like 'thanks'
             - If no specific user information is requested, respond naturally without using tools
-            - Be clear and direct in your communication""",
+            - Be clear and direct in your communication
+            - If you do not know the answer, respond politely that you cannot help""",
     ),
     ("human", "Could you check how old Peter Andreoli is? Also what is his address?"),
 ]
